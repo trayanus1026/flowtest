@@ -33,7 +33,7 @@ class TestScoringService:
             id="inv1", amount=100.0, currency="USD", invoice_date=None
         )
         transaction = TransactionInput(
-            id="tx1", amount=103.0, currency="USD", posted_at=None
+            id="tx1", amount=103.0, currency="USD", posted_at=datetime.now().isoformat()
         )
 
         score = self.service.calculate_score(invoice, transaction)
@@ -70,6 +70,7 @@ class TestScoringService:
             id="tx1",
             amount=100.0,
             currency="USD",
+            posted_at=datetime.now().isoformat(),
             description="Office supplies payment",
         )
 

@@ -25,7 +25,6 @@ export class BankTransactionsController {
     @Body() bulkImportDto: BulkImportDto,
     @Headers('idempotency-key') idempotencyKey?: string,
   ) {
-    // Use header idempotency key if not provided in body
     if (idempotencyKey && !bulkImportDto.idempotencyKey) {
       bulkImportDto.idempotencyKey = idempotencyKey;
     }

@@ -1,6 +1,6 @@
 # Multi-Tenant Invoice Reconciliation API
 
-A senior-level implementation of a multi-tenant invoice reconciliation system built with NestJS (TypeScript) and Python, featuring REST and GraphQL APIs, PostgreSQL with Row Level Security, and AI-powered explanations.
+implementation of a multi-tenant invoice reconciliation system built with NestJS (TypeScript) and Python, featuring REST and GraphQL APIs, PostgreSQL with Row Level Security, and AI-powered explanations.
 
 ## Architecture Overview
 
@@ -27,37 +27,7 @@ A senior-level implementation of a multi-tenant invoice reconciliation system bu
 
 ## Key Architectural Decisions
 
-### 1. Multi-Tenancy Strategy
-
-**Defense-in-Depth Approach:**
-- **Application Layer**: All queries filtered by `tenant_id`
-- **Database Layer**: Row Level Security (RLS) policies enforce tenant isolation
-- **Interceptor**: `RlsContextInterceptor` sets PostgreSQL session variables on every request
-
-**RLS Implementation:**
-- Context variables set via `app.set_context()` function:
-  - `app.current_user_id`
-  - `app.current_org_id` (tenant ID)
-  - `app.is_super_admin`
-- Policies check `tenant_id` against `app.current_org_id`
-- Super admin bypasses RLS for system operations
-
-**Rationale**: This provides defense-in-depth. Even if application code has bugs, RLS prevents data leakage at the database level.
-
-### 2. Transaction Boundaries
-
-**Idempotency Implementation:**
-- Idempotency keys stored in `idempotency_keys` table
-- Payload hash comparison ensures same key + same payload = same result
-- Different payload with same key returns 409 Conflict
-- Atomic transaction ensures consistency
-
-**Reconciliation Process:**
-- Match confirmation uses database transactions
-- Invoice status updated atomically with match confirmation
-- Prevents race conditions and partial updates
-
-### 3. Reconciliation Scoring Algorithm
+### 1. Reconciliation Scoring Algorithm
 
 **Deterministic Heuristics (Non-AI):**
 1. **Exact Amount Match**: +50 points
@@ -74,7 +44,7 @@ score = min(score, 100.0)  // Capped at 100
 
 **Threshold**: Only candidates with `score >= 50` are returned as proposed matches.
 
-### 4. AI Integration (Pragmatic)
+### 2. AI Integration (Pragmatic)
 
 **Design Principles:**
 - AI is **not** the primary matching engine (deterministic scoring is)
@@ -86,42 +56,6 @@ score = min(score, 100.0)  // Capped at 100
 - Timeout handling and error recovery
 - Deterministic fallback always available
 - Mockable for testing
-
-### 5. Service Boundaries
-
-**NestJS Responsibilities:**
-- Authentication & Authorization
-- Multi-tenant data access
-- Idempotency handling
-- Persistence (Drizzle ORM)
-- API layer (REST + GraphQL)
-
-**Python Responsibilities:**
-- Deterministic scoring algorithm
-- Match candidate generation
-- Deterministic explanations
-- **NOT** responsible for: auth, persistence, idempotency
-
-**Communication:**
-- HTTP REST API between NestJS and Python
-- Fallback to local scoring if Python service unavailable
-
-## Data Model
-
-### Core Tables
-
-- **tenants**: Organization/tenant information
-- **vendors**: Optional vendor information (tenant-scoped)
-- **invoices**: Invoice records (tenant-scoped, status: open/matched/paid)
-- **bank_transactions**: Bank transaction records (tenant-scoped)
-- **matches**: Match candidates and confirmed matches (status: proposed/confirmed/rejected)
-- **idempotency_keys**: Idempotency tracking for bank transaction imports
-
-### Relationships
-
-- All tenant-scoped tables reference `tenants.id`
-- `matches` links `invoices` and `bank_transactions`
-- RLS policies enforce tenant isolation on all tenant-scoped tables
 
 ## API Endpoints
 
@@ -169,58 +103,58 @@ score = min(score, 100.0)  // Capped at 100
 
 ### Prerequisites
 
-- Node.js 18+ and npm
-- Python 3.13
-- PostgreSQL 14+
-- OpenAI API key (optional, for AI explanations)
+- Node.js 24.12.0 and npm
+- Python 3.12.10
+- PostgreSQL 18
 
-### Environment Variables
+### Database Setup (Local PostgreSQL)
 
-Create `.env` file in the root directory:
+1. **Install and start PostgreSQL:**
+   - Install PostgreSQL 18 on your system
+   - Start the PostgreSQL service
+   - On Windows: PostgreSQL service should start automatically
+   - On Linux/Mac: `sudo systemctl start postgresql` or `brew services start postgresql`
 
-```env
-# Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_NAME=invoice_reconciliation
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/invoice_reconciliation
+2. **Create the database:**
+   Open Command prompt window.
+   
+   ```bash
+   psql -U postgres
+   CREATE DATABASE flowtest;
+   \q
+   ```
 
-# JWT
-JWT_SECRET=your-secret-key-change-in-production
+3. Config env file
+     DB_HOST=localhost
+     DB_PORT=5432
+     DB_USER=postgres
+     DB_PASSWORD=postgres
+     DB_NAME=flowtest
+     DATABASE_URL=postgresql://postgres:postgres@localhost:5432/flowtest
 
-# OpenAI (optional)
-OPENAI_API_KEY=sk-...
-OPENAI_MODEL=gpt-3.5-turbo
+   - Update `DB_PASSWORD` if your PostgreSQL password is different
 
-# Python API
-PYTHON_API_URL=http://localhost:8000
-
-# Server
-PORT=3000
-```
-
-### Database Setup
-
-1. **Create PostgreSQL database:**
-```bash
-createdb invoice_reconciliation
-```
-
-2. **Run Drizzle migrations:**
+4. **Run Drizzle migrations:**
 ```bash
 npm install
 npm run db:generate
 npm run db:migrate
 ```
 
-3. **Set up RLS policies:**
-```bash
-psql invoice_reconciliation < src/database/rls-setup.sql
-```
+5. **Set up RLS policies:**
+   ```bash
+   # Using psql
+   psql -U postgres -d flowtest -f src/database/rls-setup.sql
+   
+   ```
+
+   **Note:** The `ALTER DATABASE` command in the RLS setup may require superuser privileges. If you get a permission error, you can safely skip that line as it's optional.
 
 ### NestJS Backend Setup
+   open three cmd window.
+   1. for nestjs server
+   2. for python server
+   3. for test
 
 ```bash
 # Install dependencies
@@ -244,18 +178,19 @@ The API will be available at:
 cd python
 
 # Create virtual environment
-python3.13 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+py -m venv venv
+cd venv/scripts
+activate
 
 # Install dependencies
 pip install -r requirements.txt
 
 # Run tests
+set PYTHONPATH=.
 pytest
 
 # Start server
 python -m app.main
-# Or: uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
 The Python API will be available at:
@@ -269,7 +204,7 @@ The Python API will be available at:
 
 ```bash
 # Unit tests
-npm test
+npm run test
 
 # E2E tests
 npm run test:e2e
@@ -320,43 +255,6 @@ Authorization: Bearer <token>
 }
 ```
 
-## Key Features Demonstrated
-
-### 1. Multi-Tenant Isolation
-- ✅ Application-level filtering
-- ✅ Database-level RLS policies
-- ✅ Interceptor-based context setting
-- ✅ Test proving cross-tenant access blocked
-
-### 2. Idempotency
-- ✅ Idempotency key support
-- ✅ Payload hash comparison
-- ✅ Conflict detection for different payloads
-- ✅ Atomic transaction handling
-
-### 3. Transaction Boundaries
-- ✅ Match confirmation updates invoice status atomically
-- ✅ Bank transaction import uses transactions
-- ✅ Idempotency key storage in same transaction
-
-### 4. AI Integration
-- ✅ Configurable OpenAI integration
-- ✅ Graceful fallback to deterministic explanations
-- ✅ Timeout and error handling
-- ✅ Mockable for testing
-
-### 5. Clean Architecture
-- ✅ Separation of concerns (NestJS vs Python)
-- ✅ Service layer shared by REST and GraphQL
-- ✅ Dependency injection
-- ✅ Type safety throughout
-
-### 6. Testing
-- ✅ Unit tests for services
-- ✅ E2E tests for API endpoints
-- ✅ Python tests for scoring logic
-- ✅ RLS isolation tests
-
 ## Scoring Logic Details
 
 The reconciliation engine uses deterministic heuristics:
@@ -379,28 +277,4 @@ The reconciliation engine uses deterministic heuristics:
 **Minimum Threshold**: 50 points required for a match candidate.
 
 **Ranking**: Candidates sorted by score descending, top N returned.
-
-## Production Considerations
-
-1. **Security**
-   - Change `JWT_SECRET` to a strong random value
-   - Use environment-specific configuration
-   - Enable HTTPS
-   - Rate limiting on API endpoints
-
-2. **Performance**
-   - Add database indexes (already included in schema)
-   - Consider caching for reconciliation results
-   - Connection pooling (configured in Drizzle)
-
-3. **Monitoring**
-   - Add logging (Winston/Pino)
-   - Health check endpoints
-   - Metrics collection
-
-4. **Scalability**
-   - Horizontal scaling for NestJS (stateless)
-   - Python service can be scaled independently
-   - Database connection pooling
-
 

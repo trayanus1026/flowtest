@@ -1,5 +1,6 @@
 -- Enable Row Level Security
-ALTER DATABASE invoice_reconciliation SET app.settings.jwt_secret TO 'your-secret-key';
+-- JWT_SECRET will be replaced by setup-rls.ts script from .env file
+ALTER DATABASE flowtest SET app.settings.jwt_secret TO 'JWT_SECRET';
 
 -- Create function to set context variables
 CREATE OR REPLACE FUNCTION app.set_context(

@@ -130,7 +130,6 @@ export class ReconciliationService {
       throw new Error('Invoice or transaction not found');
     }
 
-    // Get match score if exists
     const [match] = await this.db
       .select()
       .from(matches)
@@ -144,7 +143,6 @@ export class ReconciliationService {
 
     const score = match ? parseFloat(match.score) : null;
 
-    // Get AI explanation with fallback
     return this.aiExplanationService.explain(
       invoice,
       transaction,

@@ -27,7 +27,7 @@ class TestReconciliationService:
         candidates = self.service.score_candidates("tenant1", invoices, transactions)
 
         assert len(candidates) > 0, "Should return at least one candidate"
-        # Verify scores are descending
+
         scores = [c.score for c in candidates]
         assert scores == sorted(scores, reverse=True), "Candidates should be sorted by score"
 
@@ -39,12 +39,11 @@ class TestReconciliationService:
         transactions = [
             TransactionInput(
                 id="tx1", amount=1000.0, currency="USD", posted_at=datetime.now().isoformat()
-            ),  # Very different amount
+            ),
         ]
 
         candidates = self.service.score_candidates("tenant1", invoices, transactions)
 
-        # Should filter out low-scoring matches
         for candidate in candidates:
             assert candidate.score >= 50.0, "All candidates should have score >= 50"
 

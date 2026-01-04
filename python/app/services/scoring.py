@@ -25,14 +25,12 @@ class ScoringService:
         """Calculate match score between invoice and transaction."""
         score = 0.0
 
-        # Amount matching
         amount_diff = abs(invoice.amount - transaction.amount)
-        if amount_diff < 0.01:  # Exact match (within 1 cent)
+        if amount_diff < 0.01:
             score += 50.0
         elif amount_diff / invoice.amount <= self.AMOUNT_TOLERANCE:
             score += 30.0
 
-        # Date proximity
         if invoice.invoice_date and transaction.posted_at:
             days_diff = self._calculate_days_diff(
                 invoice.invoice_date, transaction.posted_at
@@ -42,14 +40,13 @@ class ScoringService:
             elif days_diff <= self.DATE_TOLERANCE_LOOSE:
                 score += 10.0
 
-        # Text similarity
         if invoice.description and transaction.description:
             text_score = self._calculate_text_similarity(
                 invoice.description, transaction.description
             )
             score += text_score
 
-        return min(score, 100.0)  # Cap at 100
+        return min(score, 100.0)
 
     def _calculate_days_diff(
         self, date1_str: str, date2_str: str
@@ -74,7 +71,6 @@ class ScoringService:
         words1 = set(text1.lower().split())
         words2 = set(text2.lower().split())
 
-        # Remove common stop words
         stop_words = {
             "the",
             "a",
@@ -101,7 +97,6 @@ class ScoringService:
         if not common_words:
             return 0.0
 
-        # Score based on ratio of common words
         similarity_ratio = len(common_words) / max(len(words1), len(words2))
         return min(similarity_ratio * 30.0, 30.0)
 
@@ -117,7 +112,6 @@ class ScoringService:
         """
         parts = []
 
-        # Amount analysis
         amount_diff = abs(invoice.amount - transaction.amount)
         if amount_diff < 0.01:
             parts.append(
@@ -142,7 +136,6 @@ class ScoringService:
                     f"Dates within {int(days_diff)} days (loose match)"
                 )
 
-        # Text analysis
         if invoice.description and transaction.description:
             words1 = set(invoice.description.lower().split())
             words2 = set(transaction.description.lower().split())

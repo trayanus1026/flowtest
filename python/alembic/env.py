@@ -7,21 +7,19 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Alembic Config object
 config = context.config
 
-# Override sqlalchemy.url with environment variable
 database_url = os.getenv(
     "DATABASE_URL",
     f"postgresql://{os.getenv('DB_USER', 'postgres')}:{os.getenv('DB_PASSWORD', 'postgres')}@"
-    f"{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '5432')}/{os.getenv('DB_NAME', 'invoice_reconciliation')}",
+    f"{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '5432')}/{os.getenv('DB_NAME', 'flowtest')}",
 )
 config.set_main_option("sqlalchemy.url", database_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = None  # We're using Drizzle for migrations, so Alembic is minimal
+target_metadata = None
 
 
 def run_migrations_offline() -> None:

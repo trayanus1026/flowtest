@@ -25,7 +25,6 @@ class ReconciliationService:
 
         for invoice in invoices:
             for transaction in transactions:
-                # Skip if currencies don't match
                 if invoice.currency != transaction.currency:
                     continue
 
@@ -33,7 +32,6 @@ class ReconciliationService:
                     invoice, transaction
                 )
 
-                # Only include candidates with score >= 50
                 if score >= 50:
                     explanation = self.scoring_service.generate_explanation(
                         invoice, transaction, score
@@ -47,7 +45,6 @@ class ReconciliationService:
                         )
                     )
 
-        # Sort by score descending and return top N
         candidates.sort(key=lambda x: x.score, reverse=True)
         return candidates[:top_n]
 

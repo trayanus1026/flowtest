@@ -49,19 +49,23 @@ describe('BankTransactionsService', () => {
   });
 
   it('should return cached result for same idempotency key', async () => {
-    const cachedResult = { transactions: [{ id: '1' }] };
-    mockDb.where.mockResolvedValueOnce([
-      {
-        key: 'key1',
-        payloadHash: 'hash1',
-        result: JSON.stringify(cachedResult),
-      },
-    ]);
-
     const dto = {
       transactions: [{ postedAt: '2024-01-01', amount: 100 }],
       idempotencyKey: 'key1',
     };
+    
+    // Calculate the actual hash that will be generated
+    const crypto = require('crypto');
+    const actualHash = crypto.createHash('sha256').update(JSON.stringify(dto.transactions)).digest('hex');
+    
+    const cachedResult = { transactions: [{ id: '1' }] };
+    mockDb.where.mockResolvedValueOnce([
+      {
+        key: 'key1',
+        payloadHash: actualHash, // Use the actual hash
+        result: JSON.stringify(cachedResult),
+      },
+    ]);
 
     const result = await service.bulkImport('tenant1', dto);
     expect(result).toEqual(cachedResult);

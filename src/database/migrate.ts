@@ -6,8 +6,7 @@ import { config } from 'dotenv';
 config();
 
 async function runMigrations() {
-  const connectionString = process.env.DATABASE_URL ||
-    `postgresql://${process.env.DB_USER || 'postgres'}:${process.env.DB_PASSWORD || 'postgres'}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '5432'}/${process.env.DB_NAME || 'invoice_reconciliation'}`;
+  const connectionString = process.env.DATABASE_URL!;
 
   const sql = postgres(connectionString, { max: 1 });
   const db = drizzle(sql);

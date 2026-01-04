@@ -35,9 +35,11 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 # Environment
-.env
 .env.local
 .env.*.local
+.cursorignore
+myread.txt
+challenge.txt
 
 # Python
 __pycache__/

@@ -16,7 +16,7 @@ export const POSTGRES_CLIENT = 'POSTGRES_CLIENT';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const connectionString = configService.get<string>('DATABASE_URL') ||
-          `postgresql://${configService.get<string>('DB_USER', 'postgres')}:${configService.get<string>('DB_PASSWORD', 'postgres')}@${configService.get<string>('DB_HOST', 'localhost')}:${configService.get<string>('DB_PORT', '5432')}/${configService.get<string>('DB_NAME', 'invoice_reconciliation')}`;
+          `postgresql://${configService.get<string>('DB_USER', 'postgres')}:${configService.get<string>('DB_PASSWORD', 'postgres')}@${configService.get<string>('DB_HOST', 'localhost')}:${configService.get<string>('DB_PORT', '5432')}/${configService.get<string>('DB_NAME', 'flowtest')}`;
         
         return postgres(connectionString, { max: 1 });
       },

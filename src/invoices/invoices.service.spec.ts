@@ -19,6 +19,18 @@ describe('InvoicesService', () => {
       where: jest.fn().mockReturnThis(),
       delete: jest.fn().mockReturnThis(),
     };
+    
+    // Setup proper chaining for delete().where().returning()
+    const mockReturning = jest.fn();
+    const mockWhere = jest.fn().mockReturnValue({
+      returning: mockReturning,
+    });
+    mockDb.delete.mockReturnValue({
+      where: mockWhere,
+    });
+    
+    // Store reference for test access
+    (mockDb as any).deleteReturning = mockReturning;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -53,7 +65,7 @@ describe('InvoicesService', () => {
   });
 
   it('should delete an invoice', async () => {
-    mockDb.where.mockResolvedValue([
+    (mockDb as any).deleteReturning.mockResolvedValueOnce([
       { id: '1', tenantId: 'tenant1' },
     ]);
     const result = await service.delete('tenant1', '1');
@@ -61,7 +73,7 @@ describe('InvoicesService', () => {
   });
 
   it('should throw NotFoundException when invoice not found', async () => {
-    mockDb.where.mockResolvedValue([]);
+    (mockDb as any).deleteReturning.mockResolvedValueOnce([]);
     await expect(service.delete('tenant1', 'non-existent')).rejects.toThrow(
       NotFoundException,
     );

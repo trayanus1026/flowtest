@@ -17,6 +17,5 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 }
 
-// Alias for REST controllers
 export { JwtAuthGuard as AuthGuard };
 
