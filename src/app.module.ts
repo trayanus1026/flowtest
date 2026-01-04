@@ -18,8 +18,7 @@ import { AuthModule } from './auth/auth.module';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: true,
-      // Apollo Server 5 uses Apollo Studio Explorer instead of Playground
-      introspection: true,
+      playground: true,
     }),
     DatabaseModule,
     AuthModule,

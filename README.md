@@ -403,7 +403,4 @@ The reconciliation engine uses deterministic heuristics:
    - Python service can be scaled independently
    - Database connection pooling
 
-## License
-
-UNLICENSED - Internal use only
 
